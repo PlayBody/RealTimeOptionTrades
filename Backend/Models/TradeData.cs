@@ -5,7 +5,7 @@ using MessagePack;
 public class TradeData
 {
     [Key(0)] public Guid TradeId { get; set; }
-    [Key(1)] public string Symbol { get; set; }
+    [Key(1)] public string Symbol { get; set; } = string.Empty;
     [Key(2)] public decimal Price { get; set; }
     [Key(3)] public int Volume { get; set; }
     [Key(4)] public DateTime Timestamp { get; set; }

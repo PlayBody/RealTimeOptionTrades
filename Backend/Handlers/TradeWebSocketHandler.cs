@@ -27,6 +27,7 @@ public static class TradeWebSocketHandler
 
     public static async void BroadcastTrade(TradeData trade)
     {
+        Console.WriteLine($"Broadcasting trade: {trade.Symbol}, {trade.Price}, {trade.Volume}, {trade.Timestamp}");
         var data = MessagePackSerializer.Serialize(trade);
         foreach (var socket in WebSockets)
         {
