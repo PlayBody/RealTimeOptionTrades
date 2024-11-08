@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Real-Time Option Trades</title>
+    <style>
+        .highlight-red {
+            color: red;
+        }
+
+        .highlight-green {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h3>Real-Time Option Trades Dashboard</h3>
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th>Time</th>
+            <th>Symbol</th>
+            <th>Option</th>
+            <th>Qty</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody id="tradeTableBody"></tbody>
+    </table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.26/msgpack.min.js"></script>
+<script>
+    const ws = new WebSocket("ws://localhost:5000/ws");
+
+    ws.binaryType = "arraybuffer";
+    ws.onmessage = function (event) {
+        let trade;
+        try {
+            trade = msgpack.decode(new Uint8Array(event.data));
+        } catch (e) {
+            console.error('Failed to decode message:', e);
+            return;
+        }
+        const tableBody = document.getElementById("tradeTableBody");
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${trade.Timestamp ? new Date(trade.Timestamp).toLocaleTimeString() : 'N/A'}</td>
+            <td>${trade.Symbol ?? 'N/A'}</td>
+            <td>${trade.Option ?? 'N/A'}</td>
+            <td>${trade.Volume ?? 'N/A'}</td>
+            <td>${trade.Price !== undefined ? trade.Price.toFixed(2) : 'N/A'}</td>
+        `;
+
+        tableBody.insertBefore(row, tableBody.firstChild);
+    };
+
+    ws.onerror = function () {
+        console.error("WebSocket error.");
+    };
+
+    ws.onclose = function () {
+        console.warn("WebSocket closed.");
+    };
+</script>
+</body>
+</html>
