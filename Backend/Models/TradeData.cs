@@ -18,7 +18,7 @@ public class TradeData
             TradeId = Guid.NewGuid(),
             Symbol = symbols[new Random().Next(symbols.Length)],
             Price = Math.Round((decimal)new Random().NextDouble() * 100, 2),
-            Volume = new Random().Next(1, 1000),
+            Volume = new Random().Next(1, 5000),
             Timestamp = DateTime.Now
         };
     }

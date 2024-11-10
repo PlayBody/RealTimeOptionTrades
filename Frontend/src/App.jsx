@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { decode } from "messagepack";
+import msgpack from "@ygoe/msgpack";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -14,7 +14,7 @@ function App() {
       console.log("Received data:", event.data);
       let trade;
       try {
-        trade = decode(new Uint8Array(event.data));
+        trade = msgpack.deserialize(new Uint8Array(event.data));
       } catch (e) {
         console.error("Failed to decode message:", e);
         return;
@@ -44,27 +44,27 @@ function App() {
       <table className="table table-striped mt-3">
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Symbol</th>
-            <th>Option</th>
-            <th>Qty</th>
-            <th>Price</th>
+            <th>TIME</th>
+            <th>SYMBOL</th>
+            <th>OPTION</th>
+            <th>QTY</th>
+            <th>PRICE</th>
           </tr>
         </thead>
         <tbody>
           {trades.map((trade, index) => (
             <tr key={index}>
               <td>
-                {trade.Timestamp
-                  ? new Date(trade.Timestamp).toLocaleTimeString()
+                {trade[4]
+                  ? new Date(trade[4]).toLocaleTimeString()
                   : "N/A"}
               </td>
-              <td>{trade.Symbol !== undefined ? trade.Symbol : "N/A"}</td>
-              <td>{trade.Option ?? "N/A"}</td>
-              <td>{trade.Volume !== undefined ? trade.Volume : "N/A"}</td>
+              <td>{trade[1] !== undefined ? trade[1] : "N/A"}</td>
+              <td>{`${trade[1]} - ${trade[4].toISOString().replace(/T/g, " ").replace(/Z/g, " ")}` ?? "N/A"}</td>
+              <td>{trade[3] !== undefined ? trade[3] : "N/A"}</td>
               <td>
-                {trade.Price !== null && trade.Price !== undefined
-                  ? trade.Price.toFixed(2)
+                {trade[2] !== null && trade[2] !== undefined
+                  ? trade[2]
                   : "N/A"}
               </td>
             </tr>

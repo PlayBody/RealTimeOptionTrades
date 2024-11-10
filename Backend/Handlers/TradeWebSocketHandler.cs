@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using MessagePack;
 
 public static class TradeWebSocketHandler
@@ -10,19 +8,20 @@ public static class TradeWebSocketHandler
 
     public static async Task HandleWebSocketAsync(WebSocket webSocket)
     {
-        
+
         WebSockets.Add(webSocket);
 
         var buffer = new byte[1024 * 4];
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        while (!result.CloseStatus.HasValue)
+        // Use a separate variable to check if the WebSocket was successfully removed
+        if (webSocket != null)
         {
-            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            if (WebSockets.TryTake(out _))
+            {
+                if (result.CloseStatus != null) await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+            }
         }
-
-        if (webSocket != null) WebSockets.TryTake(out webSocket);
-        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
 
     public static async void BroadcastTrade(TradeData trade)
