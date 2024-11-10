@@ -5,8 +5,8 @@ public class TradeDataGeneratorService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var trade = TradeData.GenerateRandomTrade();
-            TradeWebSocketHandler.BroadcastTrade(trade);
-            await Task.Delay(500); // Simulate 2 trades per second
+            await TradeWebSocketHandler.BroadcastTrade(trade);
+            await Task.Delay(500, stoppingToken); // Simulate 2 trades per second
         }
     }
 }

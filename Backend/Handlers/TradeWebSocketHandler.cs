@@ -4,7 +4,7 @@ using MessagePack;
 
 public static class TradeWebSocketHandler
 {
-    private static readonly ConcurrentBag<WebSocket> WebSockets = new();
+    public static ConcurrentBag<WebSocket> WebSockets = new();
 
     public static async Task HandleWebSocketAsync(WebSocket webSocket)
     {
@@ -24,7 +24,7 @@ public static class TradeWebSocketHandler
         }
     }
 
-    public static async void BroadcastTrade(TradeData trade)
+    public static async Task BroadcastTrade(TradeData trade)
     {
         Console.WriteLine($"Broadcasting trade: {trade.Symbol}, {trade.Price}, {trade.Volume}, {trade.Timestamp}");
         var data = MessagePackSerializer.Serialize(trade);
@@ -35,5 +35,10 @@ public static class TradeWebSocketHandler
                 await socket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, CancellationToken.None);
             }
         }
+    }
+    
+    public static IEnumerable<WebSocket> GetWebSockets()
+    {
+        return WebSockets;
     }
 }
