@@ -5,12 +5,19 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   const [trades, setTrades] = useState([]);
+  const [error, setError] = useState(false);
+  const [ws, setWs] = useState(null);
 
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:5000/ws");
-    ws.binaryType = "arraybuffer";
+  const connectWebSocket = () => {
+    const websocket = new WebSocket("ws://localhost:5000/ws");
+    websocket.binaryType = "arraybuffer";
 
-    ws.onmessage = (event) => {
+    websocket.onopen = () => {
+      console.log("WebSocket connected.");
+      setError(false);
+    };
+
+    websocket.onmessage = (event) => {
       console.log("Received data:", event.data);
       let trade;
       try {
@@ -23,54 +30,80 @@ function App() {
       setTrades((prevTrades) => [trade, ...prevTrades]);
     };
 
-    ws.onerror = () => {
+    websocket.onerror = () => {
       console.error("WebSocket error.");
+      setError(true);
     };
 
-    ws.onclose = () => {
+    websocket.onclose = () => {
       console.warn("WebSocket closed.");
+      setError(true);
     };
+
+    setWs(websocket);
+  };
+
+  useEffect(() => {
+    connectWebSocket();
 
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
     };
+    // eslint-disable-next-line
   }, []);
+
+  const handleReconnect = () => {
+    setTrades([]); // Optionally clear trades on reconnect
+    connectWebSocket();
+  };
 
   return (
     <div className="container mt-5">
       <h3>Real-Time Option Trades Dashboard</h3>
-      <table className="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th>TIME</th>
-            <th>SYMBOL</th>
-            <th>OPTION</th>
-            <th>QTY</th>
-            <th>PRICE</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trades.map((trade, index) => (
-            <tr key={index}>
-              <td>
-                {trade[4]
-                  ? new Date(trade[4]).toLocaleTimeString()
-                  : "N/A"}
-              </td>
-              <td>{trade[1] !== undefined ? trade[1] : "N/A"}</td>
-              <td>{`${trade[1]} - ${trade[4].toISOString().replace(/T/g, " ").replace(/Z/g, " ")}` ?? "N/A"}</td>
-              <td>{trade[3] !== undefined ? trade[3] : "N/A"}</td>
-              <td>
-                {trade[2] !== null && trade[2] !== undefined
-                  ? trade[2]
-                  : "N/A"}
-              </td>
+      {error ? (
+        <div className="alert alert-danger">
+          WebSocket connection lost. <nbsp /><nbsp />
+          <button className="btn btn-primary ml-2" onClick={handleReconnect}>
+            Refresh
+          </button>
+        </div>
+      ) : (
+        <table className="table table-striped mt-3">
+          <thead>
+            <tr>
+              <th>TIME</th>
+              <th>SYMBOL</th>
+              <th>OPTION</th>
+              <th>QTY</th>
+              <th>PRICE</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {trades.map((trade, index) => (
+              <tr key={index}>
+                <td>
+                  {trade[4] ? new Date(trade[4]).toLocaleTimeString() : "N/A"}
+                </td>
+                <td>{trade[1] !== undefined ? trade[1] : "N/A"}</td>
+                <td>
+                  {`${trade[1]} - ${trade[4]
+                    ?.toISOString()
+                    .replace(/T/g, " ")
+                    .replace(/Z/g, " ")}` ?? "N/A"}
+                </td>
+                <td>{trade[3] !== undefined ? trade[3] : "N/A"}</td>
+                <td>
+                  {trade[2] !== null && trade[2] !== undefined
+                    ? trade[2]
+                    : "N/A"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

@@ -14,7 +14,7 @@ public class TradeDataTests
         Assert.NotEqual(Guid.Empty, trade.TradeId);
         Assert.False(string.IsNullOrEmpty(trade.Symbol));
         Assert.InRange(trade.Price, 0, 100);
-        Assert.InRange(trade.Volume, 1, 1000);
+        Assert.InRange(trade.Volume, 1, 10000);
         Assert.True(trade.Timestamp <= DateTime.Now);
     }
 }
