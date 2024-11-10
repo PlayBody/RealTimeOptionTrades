@@ -13,6 +13,7 @@ npm start
 ## How to unit test
 ```bash
 npm install --save-dev @testing-library/react @testing-library/jest-dom jest
+npm install --save-dev jest-websocket-mock
 npm test
 ```
 

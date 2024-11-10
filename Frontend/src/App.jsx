@@ -26,8 +26,12 @@ function App() {
         console.error("Failed to decode message:", e);
         return;
       }
-
-      setTrades((prevTrades) => [trade, ...prevTrades]);
+      setTrades((prevTrades) => {
+        if (prevTrades && prevTrades.length && prevTrades.length >= 100) {
+          prevTrades.pop();
+        }
+        return [trade, ...prevTrades];
+      });
     };
 
     websocket.onerror = () => {
@@ -64,7 +68,7 @@ function App() {
       <h3>Real-Time Option Trades Dashboard</h3>
       {error ? (
         <div className="alert alert-danger">
-          WebSocket connection lost. <nbsp /><nbsp />
+          WebSocket connection lost.
           <button className="btn btn-primary ml-2" onClick={handleReconnect}>
             Refresh
           </button>
@@ -88,10 +92,13 @@ function App() {
                 </td>
                 <td>{trade[1] !== undefined ? trade[1] : "N/A"}</td>
                 <td>
-                  {`${trade[1]} - ${trade[4]
-                    ?.toISOString()
-                    .replace(/T/g, " ")
-                    .replace(/Z/g, " ")}` ?? "N/A"}
+                  {`${trade[1]} - ${
+                    trade[4] ??
+                    new Date(trade[4])
+                      .toISOString()
+                      .replace(/T/g, " ")
+                      .replace(/Z/g, " ")
+                  }` ?? "N/A"}
                 </td>
                 <td>{trade[3] !== undefined ? trade[3] : "N/A"}</td>
                 <td>
